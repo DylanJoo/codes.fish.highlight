@@ -1,2 +1,3 @@
 data/esnli.train.sent_highlight.contradiction.jsonl
 checkpoints/
+__pycache__/
