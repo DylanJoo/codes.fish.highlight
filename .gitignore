@@ -2,6 +2,7 @@ data/esnli.train.sent_highlight.contradiction.jsonl
 checkpoints/
 __pycache__/
 *.swp
+status
 
 # missing data
 fin10k-data/missing/*
