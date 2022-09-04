@@ -7,3 +7,6 @@ status
 # missing data
 fin10k-data/missing/*
 
+# resutls compressed data
+fin10k-results/fin10k-demo.tar
+
