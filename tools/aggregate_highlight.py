@@ -6,7 +6,7 @@ import collections
 import argparse
 import numpy as np
 import json
-from utils import load_pred_from_json
+from utils import load_pred
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -14,16 +14,15 @@ if __name__ == "__main__":
             default='fin10k/fin10k.eval.type2.segments.results-from-scratch-101')
     parser.add_argument("-out", "--path_output_file", type=str, default='aggregate.jsonl')
     parser.add_argument("-topk", "--topk", type=int, default=None)
-    parser.add_argument("-hl_on_a", "--highlight_on_a", action='store_true', default=False)
     parser.add_argument("-thres", "--threshold", type=float, default=-1)
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(args.path_output_file), exist_ok=True)
 
-    predictions = load_pred_from_json(
+    predictions = load_pred(
             args.path_pred_file,
+            special_token=True,
             prob_threshold=args.threshold,
-            sentA=args.highlight_on_a
     )
     predictions_agg = collections.defaultdict(dict)
 
@@ -36,27 +35,30 @@ if __name__ == "__main__":
     for pair_id in predictions:
         idA, idB = pair_id.split('#')
 
-        importances = predictions[pair_id]['probs']
+        words = [w for (w, p) in predictions[pair_id]]
+        importances = [p for (w, p) in predictions[pair_id]]
 
-        threshold = sorted(importances, reverse=True)[:args.topk][-1]
-        if args.threshold is not None:
-            threshold = max(args.threshold, threshold)
-        importances = [i if i >= threshold else 0 for i in importances]
+        # no need any aggregation with threshold and topk
+        # threshold = sorted(importances, reverse=True)[:args.topk][-1]
+        # if args.threshold is not None:
+        #     threshold = max(args.threshold, threshold)
+        # importances = [i if i >= threshold else 0 for i in importances]
 
         if idB not in predictions_agg:
             predictions_agg[idB] = {
-                    'type': predictions[pair_id]['type'],
+                    'type': 2,
                     'idA': [idA],
                     'idB': idB,
-                    'words': predictions[pair_id]['words'],
+                    'words': words,
                     'probs': np.array(importances)
             }
         else:
+            raise RuntimeError('Prediction per idb should have only one pair.')
             # Noted that the words in idA-2,3,4.... will never be appended
-            predictions_agg[idB]['idA'].append(idA)
-            anchor = np.argwhere(predictions_agg[idB]['probs']==-1).flatten()[1] # start of sentence B
-            anchor_other = np.argwhere(np.array(importances)==-1).flatten()[1] # start of sentence B
-            predictions_agg[idB]['probs'][(anchor+1):] += importances[(anchor_other+1):]
+            # predictions_agg[idB]['idA'].append(idA)
+            # anchor = np.argwhere(predictions_agg[idB]['probs']==-1).flatten()[1] # start of sentence B
+            # anchor_other = np.argwhere(np.array(importances)==-1).flatten()[1] # start of sentence B
+            # predictions_agg[idB]['probs'][(anchor+1):] += importances[(anchor_other+1):]
 
     with open(args.path_output_file, 'w') as f:
         for idB in predictions_agg:

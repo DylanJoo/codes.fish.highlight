@@ -1,3 +1,4 @@
+import json
 import collections
 
 def read_fin10k(path):
@@ -48,3 +49,40 @@ def token_extraction(srcA, srcB, pair_type=2):
             'keywordsA': [], 'keywordsB': [],
             'labels': [-1] + labelsA + [-1] + labelsB + [-1],
             'probs': [-1] + probsA + [-1] + probsB + [-1],}
+
+def load_pred(file_path, special_token=False, prob_threshold=0):
+    """
+    Returns:
+        dict_pred: dictionary of pair id and its prediction.
+    """
+    prediction = {}
+    with open(file_path, 'r') as f:
+        for i, line in enumerate(f):
+            data = json.loads(line)
+            try:
+                pair_id = data.pop('idA') + "#" + data.pop('idB')
+            except:
+                pair_id = i
+
+            prediction[pair_id] = []
+
+            flag = False
+            for j, (w, p) in enumerate(zip(data['words'], data['probs'])):
+
+                if p == -1:
+                    # when aggregation
+                    if special_token:
+                        prediction[pair_id].append( (w, p) )
+                        flag = True
+                    # when evaluation
+                    else:
+                        flag = False if j == 0 else True
+                elif flag:
+                    if p >= prob_threshold:
+                        prediction[pair_id].append( (w, p) )
+                    else:
+                        prediction[pair_id].append( (w, 0) )
+                else:
+                    pass
+
+    return prediction

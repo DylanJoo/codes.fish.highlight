@@ -1,6 +1,6 @@
 data/esnli.train.sent_highlight.contradiction.jsonl
 checkpoints/
-__pycache__/
+__pycache__/*
 *.swp
 status
 

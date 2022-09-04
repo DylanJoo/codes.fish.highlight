@@ -1,4 +1,4 @@
-echo 'start' > log
+echo 'start' > log/fin10k.data.aggreagate.log
 
 for FILE in fin10k-results/*/ITEM*.type2.pred;do
     OUTPUT_FILE=${FILE/\.pred/}
@@ -6,11 +6,10 @@ for FILE in fin10k-results/*/ITEM*.type2.pred;do
     then
         # FILE=${FILE##*fin10k-demo/}
         echo $OUTPUT_FILE
-        python3 aggregate_highlight.py \
+        python3 tools/aggregate_highlight.py \
           -pred ${FILE} \
           -out ${OUTPUT_FILE} \
-          -hl_on_a \
-          -thres -1  >> log
+          -thres -1  >> log/fin10k.data.aggreagate.log
     else
         echo File $FILE empty
         mkdir -p ${OUTPUT_FILE%/*}
